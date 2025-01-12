@@ -1,17 +1,25 @@
-from DrissionPage import ChromiumPage 
+from patchright.async_api import Page
 from RecaptchaSolver import RecaptchaSolver
 import time
 
- 
-driver = ChromiumPage()
-recaptchaSolver = RecaptchaSolver(driver)
+async with async_playwright() as p:
+    browser = await p.chromium.launch_persistent_context(
+      user_data_dir="user-data-dir",
+      channel="chrome",
+      headless=False,
+      no_viewport=True,
+      executable_path="/path/to/chrome",
+      devtools=False,
+)
+    page = await browser.new_page()
+    recaptchaSolver = RecaptchaSolver(page)
 
-driver.get("https://www.google.com/recaptcha/api2/demo")
+    await page.goto("https://www.google.com/recaptcha/api2/demo")
 
-t0 = time.time()
-recaptchaSolver.solveCaptcha()
-print(f"Time to solve the captcha: {time.time()-t0:.2f} seconds")
+    t0 = time.time()
+    recaptchaSolver.solveCaptcha()
+    print(f"Time to solve the captcha: {time.time()-t0:.2f} seconds")
 
-driver.ele("#recaptcha-demo-submit").click()
+    page.locator("#recaptcha-demo-submit").click()
 
-driver.close()
+    await browser.close()
